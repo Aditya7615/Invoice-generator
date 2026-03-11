@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Garg Readymade & Hosiery - Invoice Manager</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh;}
+
+.nav{background:#1b3a6b;padding:0;display:flex;align-items:stretch;box-shadow:0 3px 15px rgba(0,0,0,0.3);}
+.nav-brand{padding:14px 24px;border-right:1px solid rgba(255,255,255,0.1);}
+.nav-brand-title{color:#fff;font-size:17px;font-weight:700;letter-spacing:.5px;}
+.nav-brand-sub{color:#90b4e8;font-size:10px;letter-spacing:1px;}
+.nav-tabs{display:flex;align-items:center;padding:0 12px;gap:4px;}
+.nav-tab{padding:10px 18px;color:#90b4e8;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;border-radius:6px;transition:all .2s;letter-spacing:.3px;}
+.nav-tab:hover{background:rgba(255,255,255,0.1);color:#fff;}
+.nav-tab.active{background:#fff;color:#1b3a6b;}
+.badge{background:#e74c3c;color:#fff;font-size:11px;border-radius:10px;padding:2px 7px;font-weight:700;margin-left:4px;}
+.nav-right{margin-left:auto;display:flex;align-items:center;padding:0 20px;gap:8px;}
+
+.btn{padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;border:none;transition:all .2s;font-family:inherit;}
+.btn-primary{background:#1b3a6b;color:#fff;}
+.btn-primary:hover{background:#254e96;}
+.btn-success{background:#27ae60;color:#fff;}
+.btn-success:hover{background:#219a52;}
+.btn-danger{background:#e74c3c;color:#fff;}
+.btn-danger:hover{background:#c0392b;}
+.btn-outline{background:transparent;color:#1b3a6b;border:2px solid #1b3a6b;}
+.btn-outline:hover{background:#1b3a6b;color:#fff;}
+.btn-sm{padding:5px 11px;font-size:12px;}
+.btn-print{background:#f39c12;color:#fff;}
+.btn-print:hover{background:#d68910;}
+
+.page{display:none;max-width:1000px;margin:24px auto;padding:0 16px 40px;}
+.page.active{display:block;}
+
+.card{background:#fff;border-radius:10px;padding:20px 24px;margin-bottom:18px;box-shadow:0 2px 10px rgba(0,0,0,0.07);border:1px solid #e2e8f0;}
+.card-title{font-size:12px;font-weight:700;color:#1b3a6b;margin-bottom:14px;letter-spacing:1px;text-transform:uppercase;border-bottom:2px solid #1b3a6b;padding-bottom:7px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:11px;color:#64748b;font-weight:600;letter-spacing:.4px;}
+.field input,.field select{padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;font-family:inherit;background:#fafbfc;outline:none;transition:border .2s;}
+.field input:focus,.field select:focus{border-color:#1b3a6b;background:#fff;}
+
+.items-table{width:100%;border-collapse:collapse;font-size:13px;}
+.items-table th{background:#1b3a6b;color:#fff;padding:9px 8px;text-align:left;white-space:nowrap;font-size:12px;}
+.items-table tbody tr:nth-child(odd){background:#f8fafc;}
+.items-table tbody tr:nth-child(even){background:#fff;}
+.items-table td{padding:4px 5px;vertical-align:middle;}
+.cell-input{width:100%;padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:5px;font-size:12px;font-family:inherit;background:transparent;outline:none;}
+.cell-input:focus{border-color:#1b3a6b;background:#fff;}
+.amt-cell{padding:4px 10px!important;font-weight:700;color:#1b3a6b;white-space:nowrap;}
+.del-btn{background:#fee2e2;color:#e74c3c;border:none;border-radius:4px;width:26px;height:26px;cursor:pointer;font-size:15px;font-weight:700;}
+.del-btn:hover{background:#e74c3c;color:#fff;}
+.add-row-btn{margin-top:10px;padding:7px 16px;background:transparent;color:#1b3a6b;border:2px dashed #1b3a6b;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;}
+.add-row-btn:hover{background:#1b3a6b;color:#fff;}
+
+.summary-box{background:#1b3a6b;border-radius:10px;padding:16px 20px;color:#fff;}
+.s-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.s-row:last-child{border-bottom:none;}
+.s-grand{font-size:17px;font-weight:700;color:#f9ca24;margin-top:6px;padding-top:8px;border-top:2px solid rgba(255,255,255,0.3);display:flex;justify-content:space-between;}
+.in-words{background:#fffbeb;border:1px solid #f6d860;border-radius:6px;padding:10px 14px;font-size:12px;font-style:italic;color:#7d6608;margin-top:10px;}
+
+.bills-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.search-box{padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:inherit;outline:none;min-width:220px;}
+.search-box:focus{border-color:#1b3a6b;}
+.bills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;}
+.bill-card{background:#fff;border-radius:10px;padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,0.07);border:1.5px solid #e2e8f0;transition:all .2s;}
+.bill-card:hover{border-color:#1b3a6b;box-shadow:0 4px 16px rgba(27,58,107,0.15);transform:translateY(-2px);}
+.bill-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.bill-no{font-size:15px;font-weight:700;color:#1b3a6b;}
+.bill-date{font-size:11px;color:#94a3b8;background:#f1f5f9;padding:3px 8px;border-radius:10px;}
+.bill-party{font-size:13px;font-weight:600;color:#374151;margin-bottom:3px;}
+.bill-addr{font-size:11px;color:#94a3b8;margin-bottom:10px;}
+.bill-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #f1f5f9;padding-top:10px;}
+.bill-total{font-size:15px;font-weight:700;color:#27ae60;}
+.bill-actions{display:flex;gap:6px;}
+.empty-state{text-align:center;padding:60px 20px;color:#94a3b8;}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-text{font-size:15px;font-weight:600;margin-bottom:6px;}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:12px;max-width:820px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;background:#fff;z-index:1;}
+.modal-title{font-size:15px;font-weight:700;color:#1b3a6b;}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;line-height:1;}
+.modal-body{padding:20px;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid #e2e8f0;}
+
+.invoice-paper{font-family:'Times New Roman',Times,serif;font-size:12px;color:#000;}
+.inv-items-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:0;}
+.inv-items-table th{border:1.5px solid #000;padding:5px 6px;background:#e8eff8;text-align:center;}
+.inv-items-table td{border:1px solid #000;padding:4px 6px;}
+
+@media print{
+  .nav,.modal-header,.modal-footer,#page-newBill,#page-allBills{display:none!important;}
+  .modal-overlay{position:static!important;display:block!important;background:none!important;padding:0!important;}
+  .modal{box-shadow:none!important;border-radius:0!important;max-height:none!important;}
+  .modal-body{padding:0!important;}
+}
+@media(max-width:640px){
+  .grid-3,.grid-4{grid-template-columns:1fr 1fr;}
+  .grid-2{grid-template-columns:1fr;}
+  .bills-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-brand">
+    <div class="nav-brand-title">Garg Readymade &amp; Hosiery</div>
+    <div class="nav-brand-sub">GSTIN: 08ASZPG2729D2ZG</div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-newBill" onclick="showPage('newBill',this)">📝 New Bill</button>
+    <button class="nav-tab" id="tab-allBills" onclick="showPage('allBills',this)">🗂 All Bills <span class="badge" id="billCount">0</span></button>
+  </div>
+  <div class="nav-right">
+    <button class="btn btn-success" onclick="saveBill()">💾 Save Bill</button>
+  </div>
+</div>
+
+<!-- ── NEW BILL ── -->
+<div class="page active" id="page-newBill">
+
+  <div class="card">
+    <div class="card-title">📋 Invoice Details</div>
+    <div class="grid-4">
+      <div class="field"><label>Invoice No.</label><input id="invoiceNo" readonly style="background:#eef2ff;font-weight:700;color:#1b3a6b;cursor:default;"></div>
+      <div class="field"><label>Date</label><input type="date" id="dated"></div>
+      <div class="field"><label>Mode of Transport</label><input id="transport" placeholder="By Road"></div>
+      <div class="field"><label>G.R. No.</label><input id="grNo"></div>
+      <div class="field"><label>Place of Delivery</label><input id="delivery" placeholder="Jaipur"></div>
+      <div class="field"><label>State Code</label><input id="stateCode" placeholder="08"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🏪 Customer Details</div>
+    <div class="grid-2">
+      <div class="field"><label>M/s (Party Name)</label><input id="partyName" placeholder="Enter party name"></div>
+      <div class="field"><label>GSTIN No.</label><input id="partyGST" placeholder="GSTIN Number"></div>
+      <div class="field"><label>Address</label><input id="partyAddress" placeholder="Full address"></div>
+      <div class="field"><label>State</label><input id="partyState" placeholder="Rajasthan"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📦 Items</div>
+    <div style="overflow-x:auto;">
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="width:36px;">S.N.</th>
+            <th>Description of Goods</th>
+            <th style="width:80px;">HSN Code</th>
+            <th style="width:75px;">Qty</th>
+            <th style="width:80px;">Rate (₹)</th>
+            <th style="width:100px;">Amount (₹)</th>
+            <th style="width:32px;"></th>
+          </tr>
+        </thead>
+        <tbody id="itemsBody"></tbody>
+      </table>
+    </div>
+    <button class="add-row-btn" onclick="addItem()">+ Add Item</button>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-title">🏦 Bank Details</div>
+        <div class="grid-2">
+          <div class="field"><label>Bank Name</label><input id="bankName"></div>
+          <div class="field"><label>IFSC Code</label><input id="ifsc"></div>
+          <div class="field"><label>A/C No.</label><input id="acNo"></div>
+          <div class="field"><label>Branch</label><input id="branch"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🧾 Tax Settings</div>
+        <div class="grid-3">
+          <div class="field">
+            <label>Tax Mode</label>
+            <select id="taxMode" onchange="calcTotals()">
+              <option value="cgst_sgst">CGST + SGST</option>
+              <option value="igst">IGST</option>
+              <option value="none">No Tax</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Rate (each %)</label>
+            <select id="taxRate" onchange="calcTotals()">
+              <option value="2.5" selected>2.5%</option>
+              <option value="6">6%</option>
+              <option value="9">9%</option>
+              <option value="14">14%</option>
+              <option value="5">5% (IGST)</option>
+              <option value="12">12% (IGST)</option>
+              <option value="18">18% (IGST)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Discount (₹)</label>
+            <input type="number" id="discount" value="0" oninput="calcTotals()" min="0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💰 Summary</div>
+      <div class="summary-box">
+        <div class="s-row"><span>Subtotal:</span><span id="s-subtotal">₹0.00</span></div>
+        <div class="s-row"><span>Discount:</span><span id="s-discount">₹0.00</span></div>
+        <div class="s-row"><span>Taxable Amount:</span><span id="s-taxable">₹0.00</span></div>
+        <div class="s-row" id="row-cgst"><span id="lbl-cgst">CGST 2.5%:</span><span id="s-cgst">₹0.00</span></div>
+        <div class="s-row" id="row-sgst"><span id="lbl-sgst">SGST 2.5%:</span><span id="s-sgst">₹0.00</span></div>
+        <div class="s-row" id="row-igst" style="display:none;"><span id="lbl-igst">IGST 5%:</span><span id="s-igst">₹0.00</span></div>
+        <div class="s-grand"><span>G. TOTAL:</span><span id="s-grand">₹0.00</span></div>
+      </div>
+      <div class="in-words" id="inWords">Rupees Zero Only</div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-success" style="width:100%;padding:11px;font-size:14px;" onclick="saveBill()">💾 Save Bill</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ALL BILLS ── -->
+<div class="page" id="page-allBills">
+  <div class="bills-toolbar">
+    <div>
+      <div style="font-size:18px;font-weight:700;color:#1b3a6b;">🗂 All Bills</div>
+      <div style="font-size:12px;color:#94a3b8;" id="billsSubtitle">0 bills saved</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <input class="search-box" id="searchBox" placeholder="🔍 Search party, invoice no..." oninput="renderBillsList()">
+      <button class="btn btn-danger btn-sm" onclick="clearAllBills()">🗑 Clear All</button>
+    </div>
+  </div>
+  <div id="billsContainer"></div>
+</div>
+
+<!-- ── MODAL ── -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Invoice Preview</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="invoice-paper" id="modalInvoice"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal()">Close</button>
+      <button class="btn btn-print btn-sm" onclick="printModal()">🖨 Print / Save PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let items = [];
+let itemCounter = 0;
+let bills = JSON.parse(localStorage.getItem('grh_bills') || '[]');
+let nextInvoiceNo = parseInt(localStorage.getItem('grh_next_inv') || '1793');
+
+// ── BOOT ───────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('dated').value = todayStr();
+  document.getElementById('invoiceNo').value = nextInvoiceNo;
+  addItem();
+  updateCount();
+});
+
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// ── PAGE NAV ───────────────────────────────────────────────────────────────────
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'allBills') renderBillsList();
+}
+
+// ── ITEMS ──────────────────────────────────────────────────────────────────────
+function addItem() {
+  const id = itemCounter++;
+  items.push({ id, description: '', hsn: '', qty: '', rate: '', amount: 0 });
+
+  const tr = document.createElement('tr');
+  tr.id = 'irow-' + id;
+
+  // S.N. cell
+  const tdSn = document.createElement('td');
+  tdSn.style.cssText = 'text-align:center;color:#94a3b8;font-size:12px;padding:6px 4px;';
+  tdSn.textContent = items.length;
+
+  // Description
+  const tdDesc = document.createElement('td');
+  const inDesc = document.createElement('input');
+  inDesc.className = 'cell-input';
+  inDesc.style.minWidth = '180px';
+  inDesc.placeholder = 'Description of goods';
+  inDesc.addEventListener('input', function() { items.find(i=>i.id===id).description = this.value; });
+  tdDesc.appendChild(inDesc);
+
+  // HSN
+  const tdHsn = document.createElement('td');
+  const inHsn = document.createElement('input');
+  inHsn.className = 'cell-input';
+  inHsn.style.width = '78px';
+  inHsn.placeholder = 'HSN';
+  inHsn.addEventListener('input', function() { items.find(i=>i.id===id).hsn = this.value; });
+  tdHsn.appendChild(inHsn);
+
+  // Qty
+  const tdQty = document.createElement('td');
+  const inQty = document.createElement('input');
+  inQty.className = 'cell-input';
+  inQty.style.width = '70px';
+  inQty.type = 'number';
+  inQty.placeholder = '0';
+  inQty.addEventListener('input', function() {
+    const item = items.find(i=>i.id===id);
+    item.qty = this.value;
+    item.amount = (parseFloat(item.qty)||0) * (parseFloat(item.rate)||0);
+    document.getElementById('amt-'+id).textContent = '₹' + item.amount.toFixed(2);
+    calcTotals();
+  });
+  tdQty.appendChild(inQty);
+
+  // Rate
+  const tdRate = document.createElement('td');
+  const inRate = document.createElement('input');
+  inRate.className = 'cell-input';
+  inRate.style.width = '75px';
+  inRate.type = 'number';
+  inRate.placeholder = '0.00';
+  inRate.addEventListener('input', function() {
+    const item = items.find(i=>i.id===id);
+    item.rate = this.value;
+    item.amount = (parseFloat(item.qty)||0) * (parseFloat(item.rate)||0);
+    document.getElementById('amt-'+id).textContent = '₹' + item.amount.toFixed(2);
+    calcTotals();
+  });
+  tdRate.appendChild(inRate);
+
+  // Amount
+  const tdAmt = document.createElement('td');
+  tdAmt.id = 'amt-' + id;
+  tdAmt.className = 'amt-cell';
+  tdAmt.textContent = '₹0.00';
+
+  // Delete
+  const tdDel = document.createElement('td');
+  tdDel.style.textAlign = 'center';
+  const delBtn = document.createElement('button');
+  delBtn.className = 'del-btn';
+  delBtn.textContent = '×';
+  delBtn.addEventListener('click', () => removeItem(id));
+  tdDel.appendChild(delBtn);
+
+  tr.append(tdSn, tdDesc, tdHsn, tdQty, tdRate, tdAmt, tdDel);
+  document.getElementById('itemsBody').appendChild(tr);
+  refreshRowNumbers();
+}
+
+function removeItem(id) {
+  items = items.filter(i => i.id !== id);
+  const row = document.getElementById('irow-' + id);
+  if (row) row.remove();
+  refreshRowNumbers();
+  calcTotals();
+}
+
+function refreshRowNumbers() {
+  items.forEach((item, i) => {
+    const row = document.getElementById('irow-' + item.id);
+    if (row) row.cells[0].textContent = i + 1;
+  });
+}
+
+// ── TOTALS ─────────────────────────────────────────────────────────────────────
+function calcTotals() {
+  const subtotal = items.reduce((s, it) => s + (it.amount || 0), 0);
+  const discount = parseFloat(document.getElementById('discount').value) || 0;
+  const taxable  = Math.max(0, subtotal - discount);
+  const mode     = document.getElementById('taxMode').value;
+  const rate     = parseFloat(document.getElementById('taxRate').value) || 0;
+
+  let cgst = 0, sgst = 0, igst = 0;
+  if (mode === 'cgst_sgst') { cgst = taxable * rate / 100; sgst = cgst; }
+  else if (mode === 'igst')  { igst = taxable * rate / 100; }
+
+  const grand = taxable + cgst + sgst + igst;
+
+  setText('s-subtotal', '₹' + subtotal.toFixed(2));
+  setText('s-discount',  '₹' + discount.toFixed(2));
+  setText('s-taxable',   '₹' + taxable.toFixed(2));
+  setText('s-cgst',      '₹' + cgst.toFixed(2));
+  setText('s-sgst',      '₹' + sgst.toFixed(2));
+  setText('s-igst',      '₹' + igst.toFixed(2));
+  setText('lbl-cgst',    'CGST ' + rate + '%:');
+  setText('lbl-sgst',    'SGST ' + rate + '%:');
+  setText('lbl-igst',    'IGST ' + rate + '%:');
+  setText('s-grand',     '₹' + grand.toFixed(2));
+  setText('inWords',     'Rupees ' + toWords(Math.round(grand)) + ' Only');
+
+  show('row-cgst', mode === 'cgst_sgst');
+  show('row-sgst', mode === 'cgst_sgst');
+  show('row-igst', mode === 'igst');
+}
+
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function show(id, vis)    { const el = document.getElementById(id); if (el) el.style.display = vis ? '' : 'none'; }
+function gval(id)         { const el = document.getElementById(id); return el ? el.value : ''; }
+
+// ── SAVE ───────────────────────────────────────────────────────────────────────
+function saveBill() {
+  const subtotal = items.reduce((s, it) => s + (it.amount || 0), 0);
+  const discount = parseFloat(gval('discount')) || 0;
+  const taxable  = Math.max(0, subtotal - discount);
+  const mode     = gval('taxMode');
+  const rate     = parseFloat(gval('taxRate')) || 0;
+  let cgst = 0, sgst = 0, igst = 0;
+  if (mode === 'cgst_sgst') { cgst = taxable * rate / 100; sgst = cgst; }
+  else if (mode === 'igst')  { igst = taxable * rate / 100; }
+  const grand = taxable + cgst + sgst + igst;
+
+  const bill = {
+    id: Date.now(),
+    invoiceNo:    gval('invoiceNo'),
+    dated:        gval('dated'),
+    transport:    gval('transport'),
+    grNo:         gval('grNo'),
+    delivery:     gval('delivery'),
+    stateCode:    gval('stateCode'),
+    partyName:    gval('partyName'),
+    partyGST:     gval('partyGST'),
+    partyAddress: gval('partyAddress'),
+    partyState:   gval('partyState'),
+    bankName:     gval('bankName'),
+    ifsc:         gval('ifsc'),
+    acNo:         gval('acNo'),
+    branch:       gval('branch'),
+    taxMode: mode, taxRate: rate, discount,
+    items: items.map(it => ({ ...it })),
+    subtotal, taxable, cgst, sgst, igst, grand
+  };
+
+  bills.unshift(bill);
+  localStorage.setItem('grh_bills', JSON.stringify(bills));
+
+  nextInvoiceNo++;
+  localStorage.setItem('grh_next_inv', nextInvoiceNo);
+
+  updateCount();
+  resetForm();
+  toast('✅ Bill #' + bill.invoiceNo + ' saved!  Next invoice: ' + nextInvoiceNo);
+}
+
+function resetForm() {
+  ['partyName','partyGST','partyAddress','partyState','transport','grNo',
+   'delivery','stateCode','bankName','ifsc','acNo','branch'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('discount').value = '0';
+  document.getElementById('taxMode').value  = 'cgst_sgst';
+  document.getElementById('taxRate').value  = '2.5';
+  items = []; itemCounter = 0;
+  document.getElementById('itemsBody').innerHTML = '';
+  document.getElementById('dated').value = todayStr();
+  document.getElementById('invoiceNo').value = nextInvoiceNo;
+  addItem();
+  calcTotals();
+}
+
+// ── BILLS LIST ─────────────────────────────────────────────────────────────────
+function renderBillsList() {
+  const q = (document.getElementById('searchBox')?.value || '').toLowerCase();
+  const list = bills.filter(b =>
+    (b.partyName  || '').toLowerCase().includes(q) ||
+    String(b.invoiceNo).includes(q) ||
+    (b.partyAddress || '').toLowerCase().includes(q)
+  );
+
+  document.getElementById('billsSubtitle').textContent =
+    bills.length + ' bill' + (bills.length !== 1 ? 's' : '') + ' saved';
+  updateCount();
+
+  const c = document.getElementById('billsContainer');
+  if (list.length === 0) {
+    c.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🧾</div>
+      <div class="empty-text">${bills.length === 0 ? 'No bills yet' : 'No results found'}</div>
+      <div style="font-size:13px;color:#94a3b8;">${bills.length === 0 ? 'Save your first bill from the New Bill tab' : 'Try a different search'}</div>
+    </div>`;
+    return;
+  }
+
+  c.innerHTML = '<div class="bills-grid">' + list.map(b => `
+    <div class="bill-card">
+      <div class="bill-card-top">
+        <div class="bill-no">Invoice #${b.invoiceNo}</div>
+        <div class="bill-date">${fmtDate(b.dated)}</div>
+      </div>
+      <div class="bill-party">${b.partyName || '(No party name)'}</div>
+      <div class="bill-addr">${b.partyAddress || ''}</div>
+      <div class="bill-footer">
+        <div class="bill-total">₹${(b.grand || 0).toFixed(2)}</div>
+        <div class="bill-actions">
+          <button class="btn btn-outline btn-sm" onclick="previewBill(${b.id})">👁 View</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteBill(${b.id})">🗑</button>
+        </div>
+      </div>
+    </div>`).join('') + '</div>';
+}
+
+function deleteBill(id) {
+  if (!confirm('Delete this bill?')) return;
+  bills = bills.filter(b => b.id !== id);
+  localStorage.setItem('grh_bills', JSON.stringify(bills));
+  renderBillsList();
+  updateCount();
+}
+
+function clearAllBills() {
+  if (!confirm('Delete ALL bills? This cannot be undone.')) return;
+  bills = [];
+  localStorage.setItem('grh_bills', JSON.stringify(bills));
+  renderBillsList();
+  updateCount();
+}
+
+function updateCount() {
+  document.getElementById('billCount').textContent = bills.length;
+}
+
+// ── PREVIEW ────────────────────────────────────────────────────────────────────
+function previewBill(id) {
+  const bill = bills.find(b => b.id === id);
+  if (!bill) return;
+  document.getElementById('modalTitle').textContent = 'Invoice #' + bill.invoiceNo + (bill.partyName ? '  —  ' + bill.partyName : '');
+  document.getElementById('modalInvoice').innerHTML = buildInvoiceHTML(bill);
+  document.getElementById('previewModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('previewModal').classList.remove('open');
+}
+
+function printModal() {
+  const html = document.getElementById('modalInvoice').innerHTML;
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Invoice</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Times New Roman',serif;padding:14px;color:#000;font-size:12px;}
+    table{width:100%;border-collapse:collapse;}
+    th,td{border:1px solid #000;padding:4px 6px;font-size:11px;}
+    th{background:#e8eff8;}
+    @media print{body{padding:4px;}}
+  </style></head><body>${html}</body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 400);
+}
+
+// ── INVOICE HTML ───────────────────────────────────────────────────────────────
+function buildInvoiceHTML(b) {
+  const rows = (b.items || []).map((it, i) => `
+    <tr>
+      <td style="text-align:center;">${i+1}</td>
+      <td>${it.description || ''}</td>
+      <td style="text-align:center;">${it.hsn || ''}</td>
+      <td style="text-align:center;">${it.qty || ''}</td>
+      <td style="text-align:right;">${parseFloat(it.rate||0).toFixed(2)}</td>
+      <td style="text-align:right;">${parseFloat(it.amount||0).toFixed(2)}</td>
+    </tr>`).join('');
+
+  let taxRows = '';
+  if (b.taxMode === 'cgst_sgst') {
+    taxRows = `
+      <tr><td colspan="5" style="text-align:right;font-weight:700;border:1px solid #000;">CGST ${b.taxRate}%</td><td style="text-align:right;border:1px solid #000;">${(b.cgst||0).toFixed(2)}</td></tr>
+      <tr><td colspan="5" style="text-align:right;font-weight:700;border:1px solid #000;">SGST ${b.taxRate}%</td><td style="text-align:right;border:1px solid #000;">${(b.sgst||0).toFixed(2)}</td></tr>`;
+  } else if (b.taxMode === 'igst') {
+    taxRows = `<tr><td colspan="5" style="text-align:right;font-weight:700;border:1px solid #000;">IGST ${b.taxRate}%</td><td style="text-align:right;border:1px solid #000;">${(b.igst||0).toFixed(2)}</td></tr>`;
+  }
+
+  return `
+  <div style="text-align:center;border-bottom:2.5px solid #1b3a6b;padding-bottom:8px;margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:#555;margin-bottom:4px;">
+      <span>GSTIN NO: 08ASZPG2729D2ZG</span>
+      <span>GST INVOICE</span>
+      <span>Mob: 9855262315 / 94135781</span>
+    </div>
+    <div style="font-size:28px;font-weight:900;color:#1b3a6b;letter-spacing:1px;">Garg Readymade &amp; Hosiery</div>
+    <div style="background:#1b3a6b;color:#fff;display:inline-block;padding:2px 16px;font-size:11px;margin:3px 0;">Wholesale of Readymade Item</div>
+    <div style="font-size:11px;color:#444;margin-top:3px;">Siddhi Vinayak Complex, Sindhi Colony, Sikar House, Jaipur</div>
+  </div>
+
+  <table style="border-collapse:collapse;width:100%;font-size:11px;margin-bottom:6px;">
+    <tr>
+      <td style="border:1.5px solid #000;padding:5px 8px;width:52%;vertical-align:top;">
+        <b>M/s:</b> ${b.partyName || ''}<br>
+        <b>Address:</b> ${b.partyAddress || ''}<br>
+        <b>GSTIN No.:</b> ${b.partyGST || ''}<br>
+        <b>State:</b> ${b.partyState || ''} &nbsp; <b>State Code:</b> ${b.stateCode || ''}
+      </td>
+      <td style="border:1.5px solid #000;padding:5px 8px;vertical-align:top;">
+        <b>Invoice No.:</b> ${b.invoiceNo} &nbsp;&nbsp; <b>Date:</b> ${fmtDate(b.dated)}<br>
+        <b>Mode of Transport:</b> ${b.transport || ''}<br>
+        <b>G.R. No.:</b> ${b.grNo || ''}<br>
+        <b>Place of Delivery:</b> ${b.delivery || ''}
+      </td>
+    </tr>
+  </table>
+
+  <table style="border-collapse:collapse;width:100%;font-size:11px;margin-bottom:0;">
+    <thead>
+      <tr style="background:#e8eff8;">
+        <th style="width:32px;border:1.5px solid #000;">S.No.</th>
+        <th style="text-align:left;border:1.5px solid #000;">Description of Goods</th>
+        <th style="width:70px;border:1.5px solid #000;">HSN Code</th>
+        <th style="width:50px;border:1.5px solid #000;">QTY.</th>
+        <th style="width:70px;border:1.5px solid #000;">RATE Rs.</th>
+        <th style="width:85px;border:1.5px solid #000;">Amount Rs.</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+      <tr style="height:16px;"><td colspan="6" style="border:1px solid #000;"></td></tr>
+      ${b.discount > 0 ? `<tr><td colspan="5" style="text-align:right;font-weight:700;border:1px solid #000;">Discount</td><td style="text-align:right;border:1px solid #000;">${parseFloat(b.discount||0).toFixed(2)}</td></tr>` : ''}
+      <tr><td colspan="5" style="text-align:right;font-weight:700;border:1px solid #000;">Total</td><td style="text-align:right;border:1px solid #000;">${parseFloat(b.taxable||0).toFixed(2)}</td></tr>
+      ${taxRows}
+      <tr style="background:#1b3a6b;">
+        <td colspan="4" style="font-weight:700;font-size:13px;text-align:center;color:#fff;border:1.5px solid #000;">G. TOTAL</td>
+        <td colspan="2" style="font-weight:700;font-size:14px;text-align:right;color:#fff;border:1.5px solid #000;">₹${parseFloat(b.grand||0).toFixed(2)}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table style="border-collapse:collapse;width:100%;font-size:11px;margin-top:6px;">
+    <tr>
+      <td style="border:1.5px solid #000;padding:6px 8px;width:55%;vertical-align:top;">
+        <b>Bank Name:</b> ${b.bankName||''} &nbsp;&nbsp; <b>IFSC Code:</b> ${b.ifsc||''}<br>
+        <b>A/c No.:</b> ${b.acNo||''} &nbsp;&nbsp; <b>Branch:</b> ${b.branch||''}<br><br>
+        <b>Total Invoice Value (In Words):</b><br>
+        <i>Rupees ${toWords(Math.round(b.grand||0))} Only</i>
+      </td>
+      <td style="border:1.5px solid #000;padding:6px 8px;vertical-align:top;font-size:10px;">
+        1. Interest @ 24% p.a. will be charged if not paid within 15 days.<br>
+        2. Goods once sold will not be taken back.<br>
+        3. Subject to Jaipur Jurisdiction Only.<br>
+        4. E.&amp;O.E.
+      </td>
+    </tr>
+    <tr>
+      <td style="border:1.5px solid #000;padding:22px 8px 8px;text-align:center;font-size:11px;"><b>Customer Signatory</b></td>
+      <td style="border:1.5px solid #000;padding:22px 8px 8px;text-align:right;font-size:11px;">For <b>Garg Readymade &amp; Hosiery</b><br><br><b>Authorised Signatory</b></td>
+    </tr>
+  </table>`;
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────────────
+function fmtDate(d) {
+  if (!d) return '';
+  const p = d.split('-');
+  return p.length === 3 ? p[2]+'/'+p[1]+'/'+p[0] : d;
+}
+
+function toWords(num) {
+  const a=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const b=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  if(!num||num===0)return'Zero';
+  function c(n){
+    if(n<20)return a[n];
+    if(n<100)return b[Math.floor(n/10)]+(n%10?' '+a[n%10]:'');
+    if(n<1000)return a[Math.floor(n/100)]+' Hundred'+(n%100?' '+c(n%100):'');
+    if(n<100000)return c(Math.floor(n/1000))+' Thousand'+(n%1000?' '+c(n%1000):'');
+    if(n<10000000)return c(Math.floor(n/100000))+' Lakh'+(n%100000?' '+c(n%100000):'');
+    return c(Math.floor(n/10000000))+' Crore'+(n%10000000?' '+c(n%10000000):'');
+  }
+  return c(Math.round(num));
+}
+
+function toast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1b3a6b;color:#fff;padding:12px 22px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+document.getElementById('previewModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
