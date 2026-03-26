@@ -549,14 +549,62 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef2f7;min-height:100vh
             <div class="fld"><label>Date *</label><input type="date" id="pur-date"></div>
           </div>
           <div class="fld"><label>Description of Goods</label><input id="pur-desc" placeholder="e.g. Kids Suit, Lower etc."></div>
-          <div class="g3">
+
+          <!-- Quantity + Unit -->
+          <div style="display:grid;grid-template-columns:1fr 120px 1fr;gap:9px;">
             <div class="fld"><label>Quantity</label><input type="number" id="pur-qty" placeholder="0" oninput="calcPurAmt()"></div>
-            <div class="fld"><label>Rate (₹)</label><input type="number" id="pur-rate" placeholder="0.00" oninput="calcPurAmt()"></div>
-            <div class="fld"><label>Total Amount (₹) *</label><input type="number" id="pur-amt" placeholder="0.00"></div>
+            <div class="fld"><label>Unit</label>
+              <select id="pur-unit">
+                <option value="Pcs.">Pcs. (Pieces)</option>
+                <option value="Dz.">Dz. (Dozen)</option>
+                <option value="Kg.">Kg. (Kilogram)</option>
+                <option value="Box">Box</option>
+                <option value="Bundle">Bundle</option>
+                <option value="Set">Set</option>
+                <option value="Meter">Meter</option>
+                <option value="Other">Other</option>
+              </select></div>
+            <div class="fld"><label>Rate (₹ per unit)</label><input type="number" id="pur-rate" placeholder="0.00" oninput="calcPurAmt()"></div>
           </div>
-          <div class="g2">
-            <div class="fld"><label>Tax Amount (₹)</label><input type="number" id="pur-tax" placeholder="0.00"></div>
-            <div class="fld"><label>Amount Paid (₹)</label><input type="number" id="pur-paid" placeholder="0.00" value="0"></div>
+
+          <div class="fld"><label>Subtotal Amount (₹) *</label><input type="number" id="pur-amt" placeholder="0.00" oninput="calcPurGST()"></div>
+
+          <!-- GST Section -->
+          <div style="background:#f0f4ff;border-radius:8px;padding:10px 12px;border:1px solid #c7d7f8;">
+            <div style="font-size:10px;font-weight:700;color:#1b3a6b;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;">🧾 GST Details</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;">
+              <div class="fld"><label>GST Mode</label>
+                <select id="pur-gst-mode" onchange="calcPurGST()">
+                  <option value="none">No GST</option>
+                  <option value="cgst_sgst">CGST + SGST</option>
+                  <option value="igst">IGST</option>
+                </select></div>
+              <div class="fld"><label>GST Rate (%)</label>
+                <select id="pur-gst-rate" onchange="calcPurGST()">
+                  <option value="5">5%</option>
+                  <option value="12">12%</option>
+                  <option value="18">18%</option>
+                  <option value="28">28%</option>
+                  <option value="3">3%</option>
+                  <option value="0">0%</option>
+                </select></div>
+              <div class="fld"><label>GST Amount (₹)</label><input type="number" id="pur-tax" placeholder="0.00" readonly style="background:#e8f0fe;"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:8px;" id="pur-gst-breakdown">
+              <div class="fld"><label>CGST (₹)</label><input type="number" id="pur-cgst" placeholder="0.00" readonly style="background:#e8f0fe;"></div>
+              <div class="fld"><label>SGST (₹)</label><input type="number" id="pur-sgst" placeholder="0.00" readonly style="background:#e8f0fe;"></div>
+            </div>
+          </div>
+
+          <!-- Grand total -->
+          <div style="background:#1b3a6b;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#90b4e8;font-size:12px;font-weight:600;">Grand Total (incl. GST)</span>
+            <span style="color:#fbbf24;font-size:18px;font-weight:800;" id="pur-grand">₹0.00</span>
+          </div>
+
+          <div class="fld"><label>Amount Paid (₹)</label><input type="number" id="pur-paid" placeholder="0.00" value="0" oninput="calcPurBalance()"></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:#dc2626;" id="pur-balance-row">
+            <span>Balance Due:</span><span id="pur-balance-val">₹0.00</span>
           </div>
           <div class="fld"><label>Notes</label><input id="pur-notes" placeholder="Optional notes"></div>
         </div>
@@ -749,7 +797,43 @@ function calcTotals(){
 
 function calcPurAmt(){
   const q=parseFloat(gv('pur-qty'))||0, r=parseFloat(gv('pur-rate'))||0;
-  if(q&&r){ const el=document.getElementById('pur-amt'); if(el) el.value=(q*r).toFixed(2); }
+  if(q&&r){ const el=document.getElementById('pur-amt'); if(el){ el.value=(q*r).toFixed(2); calcPurGST(); } }
+}
+
+function calcPurGST(){
+  const sub  = parseFloat(gv('pur-amt'))||0;
+  const mode = gv('pur-gst-mode');
+  const rate = parseFloat(gv('pur-gst-rate'))||0;
+  let cg=0, sg=0, ig=0, gstTotal=0;
+  if(mode==='cgst_sgst'){ cg=sub*rate/200; sg=cg; gstTotal=cg+sg; }
+  else if(mode==='igst'){ ig=sub*rate/100; gstTotal=ig; }
+  const grand = sub+gstTotal;
+  const setV = (id,v)=>{ const e=document.getElementById(id); if(e)e.value=v>0?v.toFixed(2):''; };
+  setV('pur-tax', gstTotal);
+  setV('pur-cgst', cg);
+  setV('pur-sgst', sg);
+  // show/hide CGST/SGST breakdown
+  const bd=document.getElementById('pur-gst-breakdown');
+  if(bd) bd.style.display = mode==='cgst_sgst'?'grid':'none';
+  const ge=document.getElementById('pur-grand');
+  if(ge) ge.textContent='₹'+grand.toFixed(2);
+  calcPurBalance();
+}
+
+function calcPurBalance(){
+  const sub    = parseFloat(gv('pur-amt'))||0;
+  const mode   = gv('pur-gst-mode');
+  const rate   = parseFloat(gv('pur-gst-rate'))||0;
+  let gstTotal = 0;
+  if(mode==='cgst_sgst')   gstTotal = sub*rate/100;
+  else if(mode==='igst')   gstTotal = sub*rate/100;
+  const grand  = sub+gstTotal;
+  const paid   = parseFloat(gv('pur-paid'))||0;
+  const bal    = Math.max(0, grand-paid);
+  const bv = document.getElementById('pur-balance-val');
+  if(bv) bv.textContent='₹'+bal.toFixed(2);
+  const br = document.getElementById('pur-balance-row');
+  if(br) br.style.color = bal>0?'#dc2626':'#16a34a';
 }
 
 // ══════════ SAVE SALE BILL ══════════
@@ -966,7 +1050,7 @@ function renderSups(){
   c.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:11px;">'+
     suppliers.map(s=>{
       const pb  = purBills.filter(b=>b.supId===s.id);
-      const tot = pb.reduce((x,b)=>x+(b.amount||0),0);
+      const tot = pb.reduce((x,b)=>x+(b.grand||b.amount||0),0);
       const paid= pb.reduce((x,b)=>x+(b.paid||0),0);
       const bal = tot-paid;
       return `<div class="supc">
@@ -995,7 +1079,7 @@ function viewSupDetail(id){
   st('sup-detail-name', s.name);
   st('sup-detail-meta', [s.phone, s.address, s.gstin?'GSTIN: '+s.gstin:''].filter(Boolean).join(' · '));
   const pb   = purBills.filter(b=>b.supId===id);
-  const tot  = pb.reduce((x,b)=>x+(b.amount||0),0);
+  const tot  = pb.reduce((x,b)=>x+(b.grand||b.amount||0),0);
   const paid = pb.reduce((x,b)=>x+(b.paid||0),0);
   const bal  = tot-paid;
   st('sp-cnt',   pb.length);
@@ -1013,16 +1097,33 @@ function renderPurBills(id){
   const empty = document.getElementById('pur-empty');
   if(!pb.length){ tbl.style.display='none'; empty.style.display='block'; tbody.innerHTML=''; return; }
   tbl.style.display=''; empty.style.display='none';
+  // rebuild table header with new cols
+  const thead = tbl.querySelector('thead');
+  if(thead) thead.innerHTML=`<tr>
+    <th>Inv No.</th><th>Date</th><th>Description</th>
+    <th>Qty &amp; Unit</th><th>Rate</th>
+    <th>Subtotal</th><th>GST</th><th>Grand Total</th>
+    <th>Paid</th><th>Balance</th><th>Status</th><th></th>
+  </tr>`;
   tbody.innerHTML = pb.map(b=>{
-    const due = (b.amount||0)-(b.paid||0);
-    const status = due<=0 ? `<span class="tcr">Paid</span>` : `<span class="tdr">₹${due.toFixed(2)} Due</span>`;
-    const imgBtn = b.billImg ? `<button class="btn btn-outline btn-sm" onclick="viewBillImg('${b.id}')" style="margin-right:4px;">🖼 Bill</button>` : '';
+    const grand= b.grand || b.amount || 0;
+    const due  = grand-(b.paid||0);
+    const gstMode = b.gstMode||'none';
+    const gstAmt  = parseFloat(b.tax)||0;
+    let gstLabel='—';
+    if(gstMode==='cgst_sgst') gstLabel=`CGST+SGST ${b.gstRate||0}%<br><small style="color:#94a3b8;">₹${gstAmt.toFixed(2)}</small>`;
+    else if(gstMode==='igst') gstLabel=`IGST ${b.gstRate||0}%<br><small style="color:#94a3b8;">₹${gstAmt.toFixed(2)}</small>`;
+    const status = due<=0 ? `<span class="tcr">Paid</span>` : `<span class="tdr">Due</span>`;
+    const imgBtn = b.billImg ? `<button class="btn btn-outline btn-sm" onclick="viewBillImg('${b.id}')" style="margin-right:4px;">🖼</button>` : '';
     return `<tr>
       <td style="font-weight:600;">${b.invNo||'-'}</td>
       <td style="white-space:nowrap;">${fmtDate(b.dated)}</td>
       <td>${b.desc||''}</td>
-      <td style="text-align:right;">${b.qty||''}</td>
-      <td style="font-weight:700;text-align:right;">₹${(b.amount||0).toFixed(2)}</td>
+      <td style="text-align:center;">${b.qty||''} ${b.unit||'Pcs.'}</td>
+      <td style="text-align:right;">₹${(b.rate||0).toFixed(2)}</td>
+      <td style="text-align:right;">₹${(b.amount||0).toFixed(2)}</td>
+      <td>${gstLabel}</td>
+      <td style="font-weight:700;color:#1b3a6b;text-align:right;">₹${grand.toFixed(2)}</td>
       <td style="color:#16a34a;font-weight:600;text-align:right;">₹${(b.paid||0).toFixed(2)}</td>
       <td style="color:#dc2626;font-weight:600;text-align:right;">₹${due.toFixed(2)}</td>
       <td>${status}</td>
@@ -1051,9 +1152,16 @@ function openPurModal(){
   if(!curSup){ toast('⚠️ Select a supplier first.'); return; }
   const s = suppliers.find(x=>x.id===curSup);
   st('pur-modal-title', 'Add Purchase Bill — '+(s?s.name:''));
-  ['pur-inv','pur-desc','pur-qty','pur-rate','pur-amt','pur-tax','pur-notes'].forEach(id=>{ const e=document.getElementById(id); if(e)e.value=''; });
-  document.getElementById('pur-date').value = today();
-  document.getElementById('pur-paid').value = '0';
+  ['pur-inv','pur-desc','pur-qty','pur-rate','pur-amt','pur-tax','pur-cgst','pur-sgst','pur-notes']
+    .forEach(id=>{ const e=document.getElementById(id); if(e)e.value=''; });
+  document.getElementById('pur-date').value     = today();
+  document.getElementById('pur-paid').value     = '0';
+  document.getElementById('pur-unit').value     = 'Pcs.';
+  document.getElementById('pur-gst-mode').value = 'none';
+  document.getElementById('pur-gst-rate').value = '5';
+  const grand = document.getElementById('pur-grand'); if(grand) grand.textContent='₹0.00';
+  const bv    = document.getElementById('pur-balance-val'); if(bv) bv.textContent='₹0.00';
+  const bd    = document.getElementById('pur-gst-breakdown'); if(bd) bd.style.display='none';
   clearPurFile();
   document.getElementById('ov-pur').classList.add('open');
 }
@@ -1178,21 +1286,35 @@ If a field is not found, use null. For date, try hard to find it — it may be i
 
 function savePurchase(){
   const amt = parseFloat(gv('pur-amt'));
-  if(!amt){ toast('⚠️ Amount is required.'); return; }
-  const paid = parseFloat(gv('pur-paid'))||0;
+  if(!amt){ toast('⚠️ Subtotal amount is required.'); return; }
+  const gstMode = gv('pur-gst-mode');
+  const gstRate = parseFloat(gv('pur-gst-rate'))||0;
+  const taxAmt  = parseFloat(gv('pur-tax'))||0;
+  const cgstAmt = parseFloat(gv('pur-cgst'))||0;
+  const sgstAmt = parseFloat(gv('pur-sgst'))||0;
+  const grand   = amt + taxAmt;
+  const paid    = parseFloat(gv('pur-paid'))||0;
   const pb = {
     id: Date.now(), supId: curSup,
     invNo: gv('pur-inv'), dated: gv('pur-date'), desc: gv('pur-desc'),
-    qty: parseFloat(gv('pur-qty'))||0, rate: parseFloat(gv('pur-rate'))||0,
-    amount: amt, tax: parseFloat(gv('pur-tax'))||0, paid,
+    qty: parseFloat(gv('pur-qty'))||0,
+    unit: gv('pur-unit')||'Pcs.',
+    rate: parseFloat(gv('pur-rate'))||0,
+    amount: amt,           // subtotal
+    gstMode, gstRate,
+    tax: taxAmt,           // total GST
+    cgst: cgstAmt, sgst: sgstAmt,
+    grand,                 // subtotal + GST
+    paid,
     notes: gv('pur-notes'),
-    billImg: purFileData || null   // store image/pdf data URL
+    billImg: purFileData || null
   };
   purBills.unshift(pb);
   const s = suppliers.find(x=>x.id===curSup);
+  // Ledger entry uses grand total (incl. GST) as the debit
   ledger.unshift({ id:Date.now()+1, type:'purchase', date:pb.dated,
-    party: s?s.name:'Supplier', ref:pb.invNo, debit:amt, credit:0,
-    notes:'Purchase: '+(pb.desc||'') });
+    party: s?s.name:'Supplier', ref:pb.invNo, debit:grand, credit:0,
+    notes:'Purchase: '+(pb.desc||'')+(gstMode!=='none'?' | GST '+gstRate+'%':'') });
   lsSave(); closeOv('ov-pur'); viewSupDetail(curSup); renderSups();
   toast('✅ Purchase bill saved!'+(pb.billImg?' (with bill image)':''));
 }
